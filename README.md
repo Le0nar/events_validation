@@ -46,3 +46,20 @@ VALUES
     (generateUUIDv4(), generateUUIDv4(), generateUUIDv4(), 'order_paid', now(), 'paid', 100.50),
     (generateUUIDv4(), generateUUIDv4(), generateUUIDv4(), 'order_shipped', now(), 'shipped', 100.50);
     `
+
+
+
+# JSON
+Пример тела запроса для записи
+`
+{
+    "eventId": "43d97d38-237c-44b8-85af-edab506ef0ac",
+    "orderId": "626d714f-97f5-4c18-a9e1-5630d7a7659b",
+    "userId": "ff09d2ea-0a95-4008-94ad-077227d463f9",
+    "eventType": "order_created",
+    "createdAt": "2025-02-10T12:53:36+00:00",
+    "orderStatus": "pending",
+    "totalAmount": 1233
+}
+
+`

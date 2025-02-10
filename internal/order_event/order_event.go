@@ -11,7 +11,7 @@ type OrderEvent struct {
 	OrderId     uuid.UUID `json:"orderId" db:"order_id"`
 	UserId      uuid.UUID `json:"userId" db:"user_id"`
 	EventType   string    `json:"eventType" db:"event_type"` // Тип события (например, "order_created", "order_paid")
-	CreatedAt   time.Time `json:"createdAt" db:"created_at"`
+	EventTime   time.Time `json:"eventTime" db:"event_time"`
 	OrderStatus string    `json:"orderStatus" db:"order_status"`
 	TotalAmount float64   `json:"totalAmount" db:"total_amount"`
 }

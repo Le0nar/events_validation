@@ -15,5 +15,5 @@ func NewService(r repository) *Service {
 }
 
 func (s *Service) SaveOrderEvent(event orderevent.OrderEvent) error {
-	return nil
+	return s.repo.SaveOrderEvent(event)
 }

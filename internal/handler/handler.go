@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 
 	orderevent "github.com/Le0nar/events_validation/internal/order_event"
@@ -25,16 +24,20 @@ func NewHandler(s service) *Handler {
 func (h *Handler) SaveOrderEvent(c *gin.Context) {
 	var event orderevent.OrderEvent
 
-	// Прочитаем JSON в структуру
+	// Прочитаем данные из тела запроса
 	if err := c.ShouldBindJSON(&event); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Skip validation (By legends, we get those events by kafka)
 
-	fmt.Printf("event: %v\n", event)
+	err := h.service.SaveOrderEvent(event)
 
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 }
 
 func (h *Handler) InitRouter() *gin.Engine {
