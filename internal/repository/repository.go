@@ -34,7 +34,7 @@ func (r *Repository) SaveOrderEvent(event orderevent.OrderEvent) error {
 }
 
 // GetRecentOrderEvents получает список всех элементов из таблицы order_event за последние 15 минут
-func (r *Repository) GetRecentOrderEvents() ([]orderevent.OrderEvent, error) {
+func (r *Repository) GetRecentOrderEvents(rowsChan chan<- orderevent.OrderEvent) error {
 	// TODO: создать табилцу с жураном проверок и брать время окончания прошлой проверки прошлой проверки
 
 	// Формируем SQL-запрос
@@ -42,24 +42,22 @@ func (r *Repository) GetRecentOrderEvents() ([]orderevent.OrderEvent, error) {
 	// Выполняем запрос
 	rows, err := r.db.Query(context.TODO(), query)
 	if err != nil {
-		return nil, fmt.Errorf("error executing query: %v", err)
+		return fmt.Errorf("error executing query: %v", err)
 	}
 	defer rows.Close()
 
-	// Преобразуем результат в слайс OrderEvent
-	var events []orderevent.OrderEvent
 	for rows.Next() {
 		var event orderevent.OrderEvent
 		if err := rows.Scan(&event.EventId, &event.OrderId, &event.UserId, &event.EventType, &event.EventTime, &event.OrderStatus, &event.TotalAmount); err != nil {
-			return nil, fmt.Errorf("error scanning row: %v", err)
+			return fmt.Errorf("error scanning row: %v", err)
 		}
-		events = append(events, event)
+		rowsChan <- event
 	}
 
 	// Проверяем на ошибки после выполнения цикла
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating rows: %v", err)
+		return fmt.Errorf("error iterating rows: %v", err)
 	}
 
-	return events, nil
+	return nil
 }

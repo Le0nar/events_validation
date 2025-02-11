@@ -10,8 +10,8 @@ import (
 )
 
 type repository interface {
-	SaveOrderEvent(event orderevent.OrderEvent) error
-	GetRecentOrderEvents() ([]orderevent.OrderEvent, error)
+	SaveOrderEvent(orderevent.OrderEvent) error
+	GetRecentOrderEvents(chan<- orderevent.OrderEvent) error
 }
 
 type Service struct {
@@ -45,7 +45,9 @@ func (s *Service) StartCheckingTicker() {
 
 	// TODO: вернуть цикл
 	start := time.Now()
+
 	s.CheckOrderEvents()
+
 	duration := time.Since(start)
 	fmt.Println(duration)
 	fmt.Printf("total errors: %d\n", counter)
@@ -56,23 +58,23 @@ var counter int
 
 func (s *Service) CheckOrderEvents() {
 	// 1) Get list for checking
-	eventList, err := s.repo.GetRecentOrderEvents()
+
+	rowsChan := make(chan orderevent.OrderEvent)
+
+	go validateOrderEvent(rowsChan)
+
+	err := s.repo.GetRecentOrderEvents(rowsChan)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
-	fmt.Printf("eventList: %v\n", len(eventList))
-
 	// 2) Check all items in list
-
-	validateOrderEvent(eventList)
 
 	// 3) log invalid item if exist (TODO: send to alert bot, if find invalid item)
 }
 
-func validateOrderEvent(OrderEvents []orderevent.OrderEvent) {
-	for _, v := range OrderEvents {
-
+func validateOrderEvent(rowsChan <-chan orderevent.OrderEvent) {
+	for v := range rowsChan {
 		if v.EventId == uuid.Nil {
 			logError(v.EventId.String(), "event id is uuid nil")
 		}
@@ -85,19 +87,19 @@ func validateOrderEvent(OrderEvents []orderevent.OrderEvent) {
 			logError(v.UserId.String(), "user id is uuid nil")
 		}
 
-		if isValidEventType(v.EventType) {
+		if !isValidEventType(v.EventType) {
 			logError(v.UserId.String(), "event type is invalid")
 		}
 
-		if isValidOrderStatus(v.OrderStatus) {
-			logError(v.UserId.String(), "event type is invalid")
+		if !isValidOrderStatus(v.OrderStatus) {
+			logError(v.UserId.String(), "order status is invalid")
 		}
 	}
 }
 
 // По легенде, ошибки пишутся отправляются на email/телегу
 func logError(orderId string, errorMsg string) {
-	fmt.Printf("event order id %s error: %s \n", orderId, errorMsg)
+	// fmt.Printf("event order id %s error: %s \n", orderId, errorMsg)
 	counter++
 }
 

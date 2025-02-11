@@ -18,7 +18,7 @@ type OrderEvent struct {
 
 const (
 	StatusCreated    = "Created"
-	StatusProcessing = "Processing"
+	StatusProcessing = "pending"
 	StatusShipped    = "Shipped"
 	StatusCanceled   = "Canceled"
 	StatusDelivered  = "Delivered"
