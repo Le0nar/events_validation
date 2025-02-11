@@ -15,7 +15,8 @@ func main() {
 	service := service.NewService(repo)
 	handler := handler.NewHandler(service)
 
-	router := handler.InitRouter()
+	go service.StartCheckingTicker()
 
+	router := handler.InitRouter()
 	router.Run()
 }

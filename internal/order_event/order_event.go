@@ -23,3 +23,11 @@ const (
 	StatusCanceled   = "Canceled"
 	StatusDelivered  = "Delivered"
 )
+
+const (
+	OrderCreated    = "order_created"
+	OrderProcessing = "order_processing"
+	OrderShipped    = "order_shipped"
+	OrderCanceled   = "order_canceled"
+	OrderDelivered  = "order_delivered"
+)
