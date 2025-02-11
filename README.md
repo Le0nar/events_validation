@@ -23,7 +23,7 @@ clickhouse-client — клиент для взаимодействия с ClickH
 --host=localhost — хост, на котором работает ClickHouse (обычно это localhost, если вы подключаетесь с той же машины).`
 
 3. Создание таблицы. После подключения к clickhouse в контейнере, нужно ввести в консоль
-CREATE TABLE OrderEvent
+CREATE TABLE order_event
 (
     event_id UUID,               -- Уникальный идентификатор события
     order_id UUID,               -- Идентификатор заказа
@@ -40,7 +40,7 @@ PARTITION BY toYYYYMM(event_time);  -- Разбиение по месяцам
 4. Пример вставки данных
 
 `
-INSERT INTO OrderEvent (event_id, order_id, user_id, event_type, event_time, order_status, total_amount)
+INSERT INTO order_event (event_id, order_id, user_id, event_type, event_time, order_status, total_amount)
 VALUES
     (generateUUIDv4(), generateUUIDv4(), generateUUIDv4(), 'order_created', now(), 'pending', 100.50),
     (generateUUIDv4(), generateUUIDv4(), generateUUIDv4(), 'order_paid', now(), 'paid', 100.50),

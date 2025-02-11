@@ -17,7 +17,7 @@ func NewRepository(db driver.Conn) *Repository {
 
 func (r *Repository) SaveOrderEvent(event orderevent.OrderEvent) error {
 	query := `
-	INSERT INTO OrderEvent (event_id, order_id, user_id, event_type, event_time, order_status, total_amount)
+	INSERT INTO order_event (event_id, order_id, user_id, event_type, event_time, order_status, total_amount)
 	VALUES (?, ?, ?, ?, ?, ?, ?)
 	`
 	ctx := context.TODO()
