@@ -3,6 +3,8 @@ package service
 import (
 	"fmt"
 	"log"
+	"runtime"
+	"sync/atomic"
 	"time"
 
 	orderevent "github.com/Le0nar/events_validation/internal/order_event"
@@ -28,49 +30,48 @@ func (s *Service) SaveOrderEvent(event orderevent.OrderEvent) error {
 
 // TODO: add to config
 // 600 seconds (10 min)
-const tickerInterval = 600
+const tickerInterval = 1
 
 func (s *Service) StartCheckingTicker() {
 	ticker := time.NewTicker(time.Duration(time.Second * tickerInterval))
 	defer ticker.Stop()
 
 	// TODO: Можно в селекте указать еще ctx.Done(), для выключения тикера при необходимости
-	// for {
-	// 	select {
-	// 	case <-ticker.C:
-	// 		// При срабатывании таймера вызываем функцию
-	// 		s.CheckOrderEvents()
-	// 	}
-	// }
+	for {
+		select {
+		case <-ticker.C:
+			// При срабатывании таймера вызываем функцию
+			start := time.Now()
 
-	// TODO: вернуть цикл
-	start := time.Now()
+			s.CheckOrderEvents()
 
-	s.CheckOrderEvents()
+			duration := time.Since(start)
+			fmt.Println(duration)
+			fmt.Printf("total errors: %v\n", errorCounter)
 
-	duration := time.Since(start)
-	fmt.Println(duration)
-	fmt.Printf("total errors: %d\n", counter)
+			// Очищаем счетчик ошибок
+			atomic.StoreInt64(&errorCounter, 0)
+		}
+	}
 }
 
 // Счетчик для проверки рефакторинга
-var counter int
+var errorCounter int64
 
 func (s *Service) CheckOrderEvents() {
-	// 1) Get list for checking
-
 	rowsChan := make(chan orderevent.OrderEvent)
+	defer close(rowsChan)
 
-	go validateOrderEvent(rowsChan)
+	gorouinesQuantity := runtime.NumCPU() - 2
+
+	for i := 0; i < gorouinesQuantity; i++ {
+		go validateOrderEvent(rowsChan)
+	}
 
 	err := s.repo.GetRecentOrderEvents(rowsChan)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-
-	// 2) Check all items in list
-
-	// 3) log invalid item if exist (TODO: send to alert bot, if find invalid item)
 }
 
 func validateOrderEvent(rowsChan <-chan orderevent.OrderEvent) {
@@ -100,7 +101,7 @@ func validateOrderEvent(rowsChan <-chan orderevent.OrderEvent) {
 // По легенде, ошибки пишутся отправляются на email/телегу
 func logError(orderId string, errorMsg string) {
 	// fmt.Printf("event order id %s error: %s \n", orderId, errorMsg)
-	counter++
+	atomic.AddInt64(&errorCounter, 1)
 }
 
 func isValidEventType(eventType string) bool {

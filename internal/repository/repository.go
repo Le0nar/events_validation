@@ -37,9 +37,8 @@ func (r *Repository) SaveOrderEvent(event orderevent.OrderEvent) error {
 func (r *Repository) GetRecentOrderEvents(rowsChan chan<- orderevent.OrderEvent) error {
 	// TODO: создать табилцу с жураном проверок и брать время окончания прошлой проверки прошлой проверки
 
-	// Формируем SQL-запрос
 	query := "SELECT * FROM order_event"
-	// Выполняем запрос
+
 	rows, err := r.db.Query(context.TODO(), query)
 	if err != nil {
 		return fmt.Errorf("error executing query: %v", err)
